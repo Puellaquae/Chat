@@ -18,21 +18,21 @@ public class SendMessageQueue {
     Lock emptyLock = new ReentrantLock();
     Condition emptyCondition = emptyLock.newCondition();
     Thread sendThread = new Thread(() -> {
-        emptyLock.lock();
-        try {
-            while (queue.isEmpty()) {
+        while (true) {
+            emptyLock.lock();
+            try {
                 emptyCondition.await(config.getWaitTime(), TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                emptyLock.unlock();
             }
             queue.removeIf(envelope -> !envelopeLife.containsKey(envelope) || envelopeLife.get(envelope) < 0);
             for (Envelope envelope : queue) {
-                System.out.println("Boardcast: " + Arrays.toString(envelope.serialize()));
+                System.out.println("Broadcast: " + Arrays.toString(envelope.serialize()));
                 UDPHelper.Broadcast(config.getPort(), envelope.serialize());
                 envelopeLife.put(envelope, envelopeLife.get(envelope) - 1);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            emptyLock.unlock();
         }
     });
 
@@ -45,6 +45,7 @@ public class SendMessageQueue {
     public void add(Envelope envelope) {
         emptyLock.lock();
         envelopeLife.put(envelope, config.getRetransmitTimes());
+        queue.add(envelope);
         emptyCondition.signalAll();
         emptyLock.unlock();
     }

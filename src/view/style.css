@@ -1,0 +1,36 @@
+body{
+  width:100vw;
+  margin: 0;
+  height:100vh;
+}
+
+#welcome{
+  display: none;
+}
+
+#message.container{
+  display: grid;
+  grid-template-columns: minmax(8rem,1fr) 5fr;
+  width:100%;
+  background-color:violet;
+}
+
+.container .left-nav{
+  display: flex;
+  flex-direction: column;
+  background-color:red;
+}
+
+.friend{
+  display: block;
+  width:100%;
+  padding: 1rem 0px 1rem 1rem;
+}
+
+.friend:hover{
+  background-color:gray;
+}
+
+#message .word{
+  margin: 1rem 1rem;
+}

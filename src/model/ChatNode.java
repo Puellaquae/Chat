@@ -25,10 +25,10 @@ public class ChatNode {
         Message message = Message.parse(ctx.message());
         System.out.println(message.type);
         if (message instanceof ListenMessage) {
-            System.out.println("Type: " + ((ListenMessage) message).id);
-            addListen(ctx, ((ListenMessage) message).id);
+            System.out.println("New User: " + ((ListenMessage) message).getId());
+            addListen(ctx, ((ListenMessage) message).getId());
         } else if (message instanceof SendMessage) {
-            System.out.println("Recipient: " + ((SendMessage) message).recipient);
+            System.out.println("Recipient: " + ((SendMessage) message).getRecipient());
             System.out.println("Letter: " + ((SendMessage) message).text);
             umb.send((SendMessage) message);
         }
@@ -49,12 +49,12 @@ public class ChatNode {
     }
 
     void distribute(SendMessage message) {
-        if (Listen.containsKey(message.recipient)) {
-            for (WsContext ctx : Listen.get(message.recipient)) {
+        if (Listen.containsKey(message.getRecipient())) {
+            for (WsContext ctx : Listen.get(message.getRecipient())) {
                 if (ctx.session.isOpen()) {
                     ctx.send(gson.toJson(message));
                 } else {
-                    removeListen(ctx, message.recipient);
+                    removeListen(ctx, message.getRecipient());
                 }
             }
         }

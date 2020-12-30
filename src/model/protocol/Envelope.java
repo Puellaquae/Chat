@@ -5,6 +5,7 @@ import model.util.CryptoUtils;
 import model.util.EncodeUtils;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Envelope {
     short TTL;
@@ -12,15 +13,17 @@ public class Envelope {
     byte[] sender;
     byte[] recipient;
     byte[] hash;
+    int dataLength;
     byte[] data;
 
     public static Envelope seal(SendMessage letter) {
         Envelope envelope = new Envelope();
         envelope.TTL = Configs.DEFAULT_TIME_TO_LIVE;
         envelope.timeTick = System.currentTimeMillis();
-        envelope.sender = EncodeUtils.hex2Bytes(letter.sender);
-        envelope.recipient = EncodeUtils.hex2Bytes(letter.recipient);
+        envelope.sender = EncodeUtils.hex2Bytes(letter.getSender());
+        envelope.recipient = EncodeUtils.hex2Bytes(letter.getRecipient());
         envelope.data = EncodeUtils.str2Bytes(letter.text);
+        envelope.dataLength = envelope.data.length;
         envelope.hash = CryptoUtils.getSHA256(envelope.data);
         return envelope;
     }
@@ -39,12 +42,16 @@ public class Envelope {
         envelope.sender = Arrays.copyOfRange(bytes, 10, 138);
         envelope.recipient = Arrays.copyOfRange(bytes, 138, 138 + 128);
         envelope.hash = Arrays.copyOfRange(bytes, 138 + 128, 138 + 128 + 32);
-        envelope.data = Arrays.copyOfRange(bytes, 138 + 128 + 32, bytes.length);
+        envelope.dataLength = (bytes[138 + 128 + 32] << 24) +
+                        (bytes[138 + 128 + 32 + 1] << 16) +
+                        (bytes[138 + 128 + 32 + 2] << 8) +
+                        (bytes[138 + 128 + 32 + 3]);
+        envelope.data = Arrays.copyOfRange(bytes, 138 + 128 + 32 + 4, 138 + 128 + 32 + 4 + envelope.dataLength);
         return envelope;
     }
 
     public byte[] serialize() {
-        byte[] bytes = new byte[2 + 8 + 128 + 128 + 32 + data.length];
+        byte[] bytes = new byte[2 + 8 + 128 + 128 + 32 + 4 + data.length];
         bytes[0] = ((byte) (TTL >> 8));
         bytes[1] = ((byte) (TTL & 0xFF));
         bytes[2] = ((byte) ((timeTick >> 56) & 0xFF));
@@ -55,7 +62,14 @@ public class Envelope {
         bytes[7] = ((byte) ((timeTick >> 16) & 0xFF));
         bytes[8] = ((byte) ((timeTick >> 8) & 0xFF));
         bytes[9] = ((byte) ((timeTick) & 0xFF));
-        
+        System.arraycopy(sender, 0, bytes, 10, Math.min(128, sender.length));
+        System.arraycopy(recipient, 0, bytes, 138, Math.min(128, recipient.length));
+        System.arraycopy(hash, 0, bytes, 138 + 128, 32);
+        bytes[138 + 128 + 32] = ((byte) ((dataLength >> 24) & 0xFF));
+        bytes[138 + 128 + 32 + 1] = ((byte) ((dataLength >> 16) & 0xFF));
+        bytes[138 + 128 + 32 + 2] = ((byte) ((dataLength >> 8) & 0xFF));
+        bytes[138 + 128 + 32 + 3] = ((byte) ((dataLength) & 0xFF));
+        System.arraycopy(data, 0, bytes, 138 + 128 + 32 + 4, data.length);
         return bytes;
     }
 
@@ -69,8 +83,8 @@ public class Envelope {
 
     public SendMessage open() {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.sender = EncodeUtils.bytes2HexStr(sender);
-        sendMessage.recipient = EncodeUtils.bytes2HexStr(recipient);
+        sendMessage.setSender(EncodeUtils.bytes2HexStr(sender));
+        sendMessage.setRecipient(EncodeUtils.bytes2HexStr(recipient));
         sendMessage.text = EncodeUtils.bytes2Str(data);
         return sendMessage;
     }
@@ -85,5 +99,27 @@ public class Envelope {
 
     public boolean check() {
         return Arrays.equals(hash, CryptoUtils.getSHA256(data));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Envelope envelope = (Envelope) o;
+        return  timeTick == envelope.timeTick &&
+                dataLength == envelope.dataLength &&
+                Arrays.equals(sender, envelope.sender) &&
+                Arrays.equals(recipient, envelope.recipient) &&
+                Arrays.equals(hash, envelope.hash);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(timeTick, dataLength);
+        result = 31 * result + Arrays.hashCode(sender);
+        result = 31 * result + Arrays.hashCode(recipient);
+        result = 31 * result + Arrays.hashCode(hash);
+        result = 31 * result + Arrays.hashCode(data);
+        return result;
     }
 }

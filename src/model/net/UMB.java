@@ -43,6 +43,8 @@ public class UMB {
                 distributed.add(envelope);
             }
             forward(envelope);
+        }else{
+            System.out.println("Check Fail");
         }
     }
 

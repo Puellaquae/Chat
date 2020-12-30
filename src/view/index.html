@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="vue.js"></script>
+</head>
+
+<body>
+<div id="welcome">
+    <form>
+        <label>
+            id:
+            <input v-model="id">
+        </label>
+        <lable>
+            password:
+            <input v-model="password" type="password">
+        </lable>
+    </form>
+</div>
+<div id="message" class="container">
+    <div class="left-nav">
+        <div class="friend" v-for="f in friends">
+            {{f.alisa}}
+        </div>
+    </div>
+    <div class="container">
+        <div v-for="m in messages" class="word" v-bind:class="{my:m.who==me}">
+            {{m.who}} : {{m.what}}
+        </div>
+        <div class="footer">
+            <input type="text" v-model="utter">
+            <input type="text" v-model="recipient">
+            <div v-on:click="send">send {{utter}} to {{recipient}}</div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="app.js"></script>
+<script src="welcome.js"></script>
+
+</html>

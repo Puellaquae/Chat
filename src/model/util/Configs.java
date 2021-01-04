@@ -10,4 +10,8 @@ public class Configs {
             .setTTL(DEFAULT_TIME_TO_LIVE)
             .setRetransmitTimes(DEFAULT_RETRANSMIT_TIMES)
             .setWaitTime(DEFAULT_WAIT_TIME);
+    public static final int RSA_KEY_LEN = 1024;
+    public static final int ID_LEN = RSA_KEY_LEN / 4;
+    public static final int ID_BYTES = ID_LEN / 2;
+    public static final int HASH_BYTES = 32;
 }

@@ -5,41 +5,102 @@
     <meta charset="UTF-8">
     <title>Chat</title>
     <link rel="stylesheet" href="style.css">
-    <script src="vue.js"></script>
+    <script src="lib/vue/vue.js"></script>
+    <script src="lib/cryptico.js"></script>
 </head>
 
 <body>
-<div id="welcome">
-    <form>
-        <label>
-            id:
-            <input v-model="id">
-        </label>
-        <lable>
-            password:
-            <input v-model="password" type="password">
-        </lable>
-    </form>
-</div>
-<div id="message" class="container">
-    <div class="left-nav">
-        <div class="friend" v-for="f in friends">
-            {{f.alisa}}
+<div id="app">
+    <div id="welcome" v-if="currentPage === 'welcome'">
+        <button
+                v-for="act in welcome.actions"
+                v-bind:key="act.key"
+                v-bind:class="['tab-button', { active: welcome.currentAction === act.key }]"
+                v-on:click="welcome.currentAction = act.key"
+        >{{ act.name }}
+        </button>
+        <div class="tab" v-if="welcome.currentAction === 'signin'">
+            <form v-on:submit="auth" onsubmit="return false">
+                <label>
+                    <div>账户：</div>
+                    <select v-model="welcome.signin.userId" required>
+                        <option disabled value="">请选择</option>
+                        <option v-for="id in welcome.signin.accountInStorage" v-bind:value="id.id">
+                            {{ id.alisa }}
+                        </option>
+                    </select>
+                </label>
+                <label>
+                    <div>口令：</div>
+                    <input type="password" v-model="welcome.signin.password" required>
+                </label>
+                <button>认证</button>
+            </form>
+        </div>
+        <div class="tab" v-if="welcome.currentAction === 'signup'">
+            <form v-on:submit="signup" onsubmit="return false">
+                <label>
+                    <div>密码：</div>
+                    <input type="password" v-model="welcome.signup.password" required>
+                </label>
+                <label>
+                    <div>称呼：</div>
+                    <input v-model="welcome.signup.alisa" required>
+                </label>
+                <button>新ID</button>
+            </form>
+        </div>
+        <div class="tab" v-if="welcome.currentAction === 'load'">
+            <form v-on:submit="loadAccount" onsubmit="return false">
+                <label>
+                    <div>资料：</div>
+                    <input v-model="welcome.load.inf" required>
+                </label>
+                <button>导入ID</button>
+            </form>
         </div>
     </div>
-    <div class="container">
-        <div v-for="m in messages" class="word" v-bind:class="{my:m.who==me}">
-            {{m.who}} : {{m.what}}
+    <div id="message" v-if="currentPage === 'message'" class="container">
+        <div class="left-nav">
+            <button
+                    v-for="a in message.address"
+                    v-bind:key="a.id"
+                    v-bind:class="['tab-button', { active: message.currentAddressId === a.id }]"
+                    v-on:click="message.currentAddressId = a.id"
+            >{{ a.alisa }}
+            </button>
+        </div>
+        <div class="container">
+            <div v-for="m in showMessage" class="word" v-bind:class="{'myWord':m.sender === myId}">
+                {{ id2Alisa(m.sender) }} : {{ m.text }}
+            </div>
         </div>
         <div class="footer">
-            <input type="text" v-model="utter">
-            <input type="text" v-model="recipient">
-            <div v-on:click="send">send {{utter}} to {{recipient}}</div>
+            <form v-on:submit="send" onsubmit="return false">
+                <input v-model="message.utter" required>
+                <button>发送</button>
+            </form>
         </div>
     </div>
+    <div id="setting">
+        <button v-on:click="exportInf">导出ID信息</button>
+        <button v-on:click="copyId">复制自身ID</button>
+        <form v-on:submit="addFriend" onsubmit="return false">
+            <label>
+                <div>ID：</div>
+                <input v-model="setting.newFriend.id" required>
+            </label>
+            <label>
+                <div>备注：</div>
+                <input v-model="setting.newFriend.alisa" required>
+            </label>
+            <button>添加到通讯录</button>
+        </form>
+        <button v-on:click="removeFriend">从通讯录移除</button>
+    </div>
 </div>
+
 </body>
-<script src="app.js"></script>
-<script src="welcome.js"></script>
+<script type="module" src="app.js"></script>
 
 </html>

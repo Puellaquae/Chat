@@ -35,7 +35,7 @@ public class UMB {
     public void procEnvelope(byte[] rawMessage) {
         Envelope envelope = Envelope.deserialize(rawMessage);
         if (envelope.check()) {
-            if (envelope.getTTL() == config.getTTL() - 1) {
+            if (envelope.getTTL() < config.getTTL()) {
                 sendMQ.ack(envelope);
             }
             if (!distributed.contains(envelope) && subscribers.contains(EncodeUtils.bytes2HexStr(envelope.getRecipient()))) {

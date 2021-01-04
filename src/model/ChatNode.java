@@ -23,11 +23,15 @@ public class ChatNode {
 
     public void newMessage(WsMessageContext ctx) {
         Message message = Message.parse(ctx.message());
+        if (message == null) {
+            return;
+        }
         System.out.println(message.type);
         if (message instanceof ListenMessage) {
             System.out.println("New User: " + ((ListenMessage) message).getId());
             addListen(ctx, ((ListenMessage) message).getId());
         } else if (message instanceof SendMessage) {
+            System.out.println("Sender: " + ((SendMessage) message).getSender());
             System.out.println("Recipient: " + ((SendMessage) message).getRecipient());
             System.out.println("Letter: " + ((SendMessage) message).text);
             umb.send((SendMessage) message);
@@ -52,6 +56,7 @@ public class ChatNode {
         if (Listen.containsKey(message.getRecipient())) {
             for (WsContext ctx : Listen.get(message.getRecipient())) {
                 if (ctx.session.isOpen()) {
+                    System.out.println("New Message To " + ctx.toString());
                     ctx.send(gson.toJson(message));
                 } else {
                     removeListen(ctx, message.getRecipient());

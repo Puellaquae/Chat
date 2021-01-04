@@ -1,36 +1,79 @@
-body{
-  width:100vw;
-  margin: 0;
-  height:100vh;
+
+#message.container {
+    display: grid;
+    grid-template-columns: minmax(8rem, 1fr) 5fr;
+    width: 100%;
+    background-color: violet;
 }
 
-#welcome{
-  display: none;
+.container .left-nav {
+    display: flex;
+    flex-direction: column;
+    background-color: red;
 }
 
-#message.container{
-  display: grid;
-  grid-template-columns: minmax(8rem,1fr) 5fr;
-  width:100%;
-  background-color:violet;
+.friend {
+    display: block;
+    width: 100%;
+    padding: 1rem 0px 1rem 1rem;
 }
 
-.container .left-nav{
-  display: flex;
-  flex-direction: column;
-  background-color:red;
+.friend:hover {
+    background-color: gray;
 }
 
-.friend{
-  display: block;
-  width:100%;
-  padding: 1rem 0px 1rem 1rem;
+#message .word {
+    margin: 1rem 1rem;
 }
 
-.friend:hover{
-  background-color:gray;
+.tab-button {
+    padding: 6px 10px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background: #f0f0f0;
+    margin-bottom: -1px;
+    margin-right: -1px;
 }
 
-#message .word{
-  margin: 1rem 1rem;
+.tab-button:hover {
+    background-color: lightgray;
+}
+
+.tab-button.active {
+    background-color: gray;
+}
+
+form {
+    border: 1px solid #ccc;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+form input, form select {
+    margin: 10px 0;
+    width: 100%;
+    box-sizing: content-box;
+    border: 1px solid darkgray;
+}
+
+label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+label div {
+    display: inline-block;
+    width: min(100%, 4em);
+}
+
+.container{
+    display: flex;
+}
+
+.word .myWord{
+    justify-self: right;
 }

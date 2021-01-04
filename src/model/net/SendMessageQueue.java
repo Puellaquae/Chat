@@ -21,7 +21,11 @@ public class SendMessageQueue {
         while (true) {
             emptyLock.lock();
             try {
-                emptyCondition.await(config.getWaitTime(), TimeUnit.MILLISECONDS);
+                if (!queue.isEmpty()) {
+                    emptyCondition.await(config.getWaitTime(), TimeUnit.MILLISECONDS);
+                } else {
+                    emptyCondition.await();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {

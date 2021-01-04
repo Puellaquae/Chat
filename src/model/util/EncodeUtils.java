@@ -5,8 +5,8 @@ import java.nio.charset.StandardCharsets;
 public class EncodeUtils {
     public static byte[] hex2Bytes(String hex) {
         hex = regularizeID(hex);
-        byte[] data = new byte[128];
-        for (int i = 0; i < 256; i += 2) {
+        byte[] data = new byte[Configs.ID_BYTES];
+        for (int i = 0; i < Configs.ID_LEN; i += 2) {
             data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
                     + Character.digit(hex.charAt(i + 1), 16));
         }
@@ -31,12 +31,12 @@ public class EncodeUtils {
     }
 
     public static String regularizeID(String id) {
-        if (id.length() == 256) {
+        if (id.length() == Configs.ID_LEN) {
             return id;
         }
-        StringBuilder sb = new StringBuilder(256);
+        StringBuilder sb = new StringBuilder(Configs.ID_LEN);
         sb.append("00000000".repeat(32));
-        sb.insert(256 - id.length(), id);
+        sb.insert(Configs.ID_LEN - id.length(), id);
         return sb.toString();
     }
 

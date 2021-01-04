@@ -9,5 +9,8 @@
 
 /out/
 
-/src/view/vue.js
+/src/view/lib/vue/vue.js
 /lib/
+/src/test/
+/src/view/lib/
+/src/view/typings/

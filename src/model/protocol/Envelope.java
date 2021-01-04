@@ -39,19 +39,25 @@ public class Envelope {
                 (bytes[7] << 16) +
                 (bytes[8] << 8) +
                 (bytes[9]);
-        envelope.sender = Arrays.copyOfRange(bytes, 10, 138);
-        envelope.recipient = Arrays.copyOfRange(bytes, 138, 138 + 128);
-        envelope.hash = Arrays.copyOfRange(bytes, 138 + 128, 138 + 128 + 32);
-        envelope.dataLength = (bytes[138 + 128 + 32] << 24) +
-                        (bytes[138 + 128 + 32 + 1] << 16) +
-                        (bytes[138 + 128 + 32 + 2] << 8) +
-                        (bytes[138 + 128 + 32 + 3]);
-        envelope.data = Arrays.copyOfRange(bytes, 138 + 128 + 32 + 4, 138 + 128 + 32 + 4 + envelope.dataLength);
+        int offset = Short.BYTES + Long.BYTES;
+        envelope.sender = Arrays.copyOfRange(bytes, offset, offset + Configs.ID_BYTES);
+        offset += Configs.ID_BYTES;
+        envelope.recipient = Arrays.copyOfRange(bytes, offset, offset + Configs.ID_BYTES);
+        offset += Configs.ID_BYTES;
+        envelope.hash = Arrays.copyOfRange(bytes, offset, offset + Configs.HASH_BYTES);
+        offset += Configs.HASH_BYTES;
+        envelope.dataLength = (bytes[offset] << 24) +
+                (bytes[offset + 1] << 16) +
+                (bytes[offset + 2] << 8) +
+                (bytes[offset + 3]);
+        offset += Integer.BYTES;
+        envelope.data = Arrays.copyOfRange(bytes, offset, offset + envelope.dataLength);
         return envelope;
     }
 
     public byte[] serialize() {
-        byte[] bytes = new byte[2 + 8 + 128 + 128 + 32 + 4 + data.length];
+        byte[] bytes = new byte[Short.BYTES + Long.BYTES + Configs.ID_BYTES * 2 + 32 + Integer.BYTES + data.length];
+        int offset = 0;
         bytes[0] = ((byte) (TTL >> 8));
         bytes[1] = ((byte) (TTL & 0xFF));
         bytes[2] = ((byte) ((timeTick >> 56) & 0xFF));
@@ -62,14 +68,19 @@ public class Envelope {
         bytes[7] = ((byte) ((timeTick >> 16) & 0xFF));
         bytes[8] = ((byte) ((timeTick >> 8) & 0xFF));
         bytes[9] = ((byte) ((timeTick) & 0xFF));
-        System.arraycopy(sender, 0, bytes, 10, Math.min(128, sender.length));
-        System.arraycopy(recipient, 0, bytes, 138, Math.min(128, recipient.length));
-        System.arraycopy(hash, 0, bytes, 138 + 128, 32);
-        bytes[138 + 128 + 32] = ((byte) ((dataLength >> 24) & 0xFF));
-        bytes[138 + 128 + 32 + 1] = ((byte) ((dataLength >> 16) & 0xFF));
-        bytes[138 + 128 + 32 + 2] = ((byte) ((dataLength >> 8) & 0xFF));
-        bytes[138 + 128 + 32 + 3] = ((byte) ((dataLength) & 0xFF));
-        System.arraycopy(data, 0, bytes, 138 + 128 + 32 + 4, data.length);
+        offset += Short.BYTES + Long.BYTES;
+        System.arraycopy(sender, 0, bytes, offset, Math.min(Configs.ID_BYTES, sender.length));
+        offset += Configs.ID_BYTES;
+        System.arraycopy(recipient, 0, bytes, offset, Math.min(Configs.ID_BYTES, recipient.length));
+        offset += Configs.ID_BYTES;
+        System.arraycopy(hash, 0, bytes, offset, Configs.HASH_BYTES);
+        offset += Configs.HASH_BYTES;
+        bytes[offset] = ((byte) ((dataLength >> 24) & 0xFF));
+        bytes[offset + 1] = ((byte) ((dataLength >> 16) & 0xFF));
+        bytes[offset + 2] = ((byte) ((dataLength >> 8) & 0xFF));
+        bytes[offset + 3] = ((byte) ((dataLength) & 0xFF));
+        offset += Integer.BYTES;
+        System.arraycopy(data, 0, bytes, offset, data.length);
         return bytes;
     }
 
@@ -106,7 +117,7 @@ public class Envelope {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Envelope envelope = (Envelope) o;
-        return  timeTick == envelope.timeTick &&
+        return timeTick == envelope.timeTick &&
                 dataLength == envelope.dataLength &&
                 Arrays.equals(sender, envelope.sender) &&
                 Arrays.equals(recipient, envelope.recipient) &&
